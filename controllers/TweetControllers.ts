@@ -9,7 +9,7 @@ import { UserModelDocumentInterface, UserModelInterface } from "../models/UserMo
 class TweetsController{
     async index(_: any, res: express.Response): Promise<any>{
         try {
-            const tweets = await TweetModel.find({}).exec()
+            const tweets = await TweetModel.find({}).populate('user').sort({'createdAt' : -1}).exec()
 
             res.json({
                 status: 'Success',
@@ -34,7 +34,7 @@ class TweetsController{
             }
 
             // const user = await UserModel.findById({userId}).exec()
-            const tweet = await TweetModel.findOne({_id: tweetId}).exec()
+            const tweet = await TweetModel.findOne({_id: tweetId}).populate('user').exec()
             
             if(!tweet){
                 res.status(404).send()
@@ -72,9 +72,10 @@ class TweetsController{
                 }
                 const tweet = await TweetModel.create(data)
 
+                
                 res.json({
                     status: 'Success',
-                    data: tweet
+                    data: await tweet.populate('user')
                 })
             }
 
@@ -102,6 +103,42 @@ class TweetsController{
             if(tweet){
                 if(String(tweet.user._id) === String(user._id)){
                     tweet.delete()
+                    res.send()
+                } else {
+                    res.status(403).send()
+                }
+                
+            } else {
+                res.status(404).send()
+            }
+
+            res.send()
+        } catch (error) {
+            res.status(500).json({
+                status: 'Error',
+                message: error
+            })
+        }
+    }
+
+    async update (req: express.Request, res: express.Response): Promise<void>{
+        const user = req.user as UserModelInterface
+        try {
+
+            const tweetId = req.params.id
+
+            if (!isValidObjectId(tweetId)){
+                res.status(400).send()
+                return
+            }
+
+            const tweet = await TweetModel.findById(tweetId)
+            
+            if(tweet){
+                if(String(tweet.user._id) === String(user._id)){
+                    const text = req.body.text
+                    tweet.text = text
+                    tweet.save()
                     res.send()
                 } else {
                     res.status(403).send()

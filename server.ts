@@ -22,7 +22,6 @@ app.use(passport.initialize())
 
 
 app.get('/users', UserCtlr.index)
-app.post('/users', regsiterValidations, UserCtlr.create)
 app.get('/users/me', passport.authenticate('jwt'), UserCtlr.getUserInfo)
 app.get('/users/:id', regsiterValidations, UserCtlr.show)
 
@@ -30,9 +29,11 @@ app.get('/users/:id', regsiterValidations, UserCtlr.show)
 app.get('/tweets', TweetsCtr.index)
 app.get('/tweets/:id', TweetsCtr.show)
 app.delete('/tweets/:id', passport.authenticate('jwt'), createTeweetValidations, TweetsCtr.delete)
+app.patch('/tweets/:id', passport.authenticate('jwt'), createTeweetValidations, TweetsCtr.update)
 app.post('/tweets', passport.authenticate('jwt'), TweetsCtr.create)
 
 // app.post('/auth/login', passport.authenticate('local'), (req, res) => res.json(req.user));
+app.post('/auth/register', regsiterValidations, UserCtlr.create)
 app.post('/auth/login', passport.authenticate('local'), UserCtlr.afterLogin);
 app.get('/auth/verify', regsiterValidations, UserCtlr.verify)
 
